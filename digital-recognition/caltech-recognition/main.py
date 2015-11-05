@@ -1,6 +1,7 @@
 import os
 import cv2
 import numpy
+import random
 
 
 if __name__ == '__main__':
@@ -12,8 +13,9 @@ if __name__ == '__main__':
     train_labels = []
     test_data = []
     test_labels = []
+    hog = cv2.HOGDescriptor()
 
-    for i in xrange(8): # TODO change
+    for i in random.sample(range(len(categories)), 4): # pick four random categories
         category = categories[i]
         image_path = os.path.join(categories_path, category)
         image_list = os.listdir(image_path)
@@ -22,11 +24,14 @@ if __name__ == '__main__':
         for image_name in image_list:
             image = cv2.imread(os.path.join(image_path, image_name), cv2.IMREAD_GRAYSCALE)
             image = cv2.resize(image, (300, 200))
+            image = hog.compute(image)
             flat = image.flatten().astype(numpy.float32)
+            # first 20 go in testing
             if image_count < 20:
                 test_data.append(flat)
                 test_labels.append([i])
-            else:
+            # second 20 go in training
+            elif image_count < 40:
                 train_data.append(flat)
                 train_labels.append([i])
             image_count += 1
