@@ -13,7 +13,12 @@ if __name__ == '__main__':
     train_labels = []
     test_data = []
     test_labels = []
-    hog = cv2.HOGDescriptor()
+    winSize = (16,16)
+    blockSize = (16,16)
+    blockStride = (8,8)
+    cellSize = (8,8)
+    nbins = 9
+    hog = cv2.HOGDescriptor(winSize,blockSize,blockStride,cellSize,nbins)
 
     for i in random.sample(range(len(categories)), 4): # pick four random categories
         category = categories[i]
@@ -24,15 +29,16 @@ if __name__ == '__main__':
         for image_name in image_list:
             image = cv2.imread(os.path.join(image_path, image_name), cv2.IMREAD_GRAYSCALE)
             image = cv2.resize(image, (300, 200))
+
             image = hog.compute(image)
-            flat = image.flatten().astype(numpy.float32)
+
             # first 20 go in testing
             if image_count < 20:
-                test_data.append(flat)
+                test_data.append(image)
                 test_labels.append([i])
             # second 20 go in training
             elif image_count < 40:
-                train_data.append(flat)
+                train_data.append(image)
                 train_labels.append([i])
             image_count += 1
 
@@ -53,7 +59,7 @@ if __name__ == '__main__':
         if result[i] == test_labels[i]:
             correct += 1
 
-    print correct, 1.0 * correct / result.size
+    print 'knn:', correct, 1.0 * correct / result.size
 
     # SVM
     svm_params = {
@@ -73,4 +79,4 @@ if __name__ == '__main__':
         if result[i] == test_labels[i]:
             correct += 1
 
-    print correct, 1.0 * correct / result.size
+    print 'svm:', correct, 1.0 * correct / result.size
