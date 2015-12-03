@@ -27,6 +27,9 @@ if __name__ == '__main__':
         image_count = 0
 
         for image_name in image_list:
+            if image_count == 40:
+                break
+
             image = cv2.imread(os.path.join(image_path, image_name), cv2.IMREAD_GRAYSCALE)
             image = cv2.resize(image, (300, 200))
 
