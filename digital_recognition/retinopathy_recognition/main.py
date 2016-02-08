@@ -5,16 +5,26 @@ import csv
 
 
 if __name__ == '__main__':
-    data = {i: [] for i in range(5)}
+    # Get image names and associate
+    names = {i: [] for i in range(5)}
     with open('subsetcsv.csv', 'r') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
-            data[int(row[1])].append('train/' + row[0] + '.jpeg')
+            names[int(row[1])].append('train/' + row[0] + '.jpeg')
 
-    for key, value in data.iteritems():
-        for image_name in value:
-            print image_name
-            print cv2.imread(image_name, cv2.IMREAD_GRAYSCALE).shape
+    images = {i: [] for i in range(5)}
+    for classification, image_names in names.iteritems():
+        for image_name in image_names:
+            # median x is 2592
+            # media y is 3888
+            image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
+            image = cv2.resize(image, (2592, 3888))
+
+            images[classification].append(image)
+
+    for classiction in images.iterkeys():
+        print len(images[classification])
+
 
 """
 def get_default_image_data():
@@ -48,33 +58,5 @@ def get_default_image_transformed(bin_n=16, size=20):
     test_data = test_data.reshape(-1, bin_n * 4)
     expected = numpy.repeat(numpy.arange(10), 250)[:, numpy.newaxis]
     return train_data, test_data, expected
+"""
 
-
-def deskew(img, size=20):
-    m = cv2.moments(img)
-    if abs(m['mu02']) < 1e-2:
-        return img.copy()
-    skew = m['mu11'] / m['mu02']
-    M = numpy.float32([[1, skew, -0.5 * size * skew], [0, 1, 0]])
-    affine_flags = cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR
-    img = cv2.warpAffine(img, M, (size, size), flags=affine_flags)
-    return img
-
-
-def hog(img, bin_n=16):
-    gx = cv2.Sobel(img, cv2.CV_32F, 1, 0)
-    gy = cv2.Sobel(img, cv2.CV_32F, 0, 1)
-    mag, ang = cv2.cartToPolar(gx, gy)
-    bins = numpy.int32(bin_n*ang/(2 * numpy.pi))
-    # quantizing binvalues in (0...16)
-    bin_cells = bins[:10, :10], bins[10:, :10], bins[:10, 10:], \
-        bins[10:, 10:]
-    mag_cells = mag[:10, :10], mag[10:, :10], mag[:10, 10:], mag[10:, 10:]
-    hists = [numpy.bincount(b.ravel(), m.ravel(), bin_n)
-             for b, m in zip(bin_cells, mag_cells)]
-    hist = numpy.hstack(hists)     # hist is a 64 bit vector
-    return hist
-
-
-def transform(img):
-    return [[hog(deskew(cell)) for cell in row] for row in img]"""
