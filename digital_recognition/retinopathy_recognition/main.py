@@ -12,14 +12,23 @@ if __name__ == '__main__':
         for row in reader:
             names[int(row[1])].append('train/' + row[0] + '.jpeg')
 
+    # TODO: we should experiment with these
+    win_size = (16, 16)
+    block_size = (16, 16)
+    block_stride = (8, 8)
+    cell_size = (8, 8)
+    num_bins = 9
+    hog = cv2.HOGDescriptor(win_size, block_size, block_stride, cell_size,
+                            num_bins)
+
     images = {i: [] for i in range(5)}
     for classification, image_names in names.iteritems():
         for image_name in image_names:
-            # median x is 2592
-            # media y is 3888
+            # median image size in (2592, 3888)
             image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
             image = cv2.resize(image, (2592, 3888))
-
+            image = hog.compute(image)
+            print image.shape
             images[classification].append(image)
 
     for classiction in images.iterkeys():
