@@ -3,9 +3,6 @@ import numpy
 import csv
 
 
-def brightness_normalize():
-    pass
-
 if __name__ == '__main__':
     # Get image names and classifications
     names = {i: [] for i in range(5)}
