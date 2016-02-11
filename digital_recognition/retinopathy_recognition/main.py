@@ -22,11 +22,8 @@ if __name__ == '__main__':
 
     # Load all images into memory for now
     images = {i: [] for i in range(5)}
-    count = 0
     for classification, image_names in names.iteritems():
         for image_name in image_names:
-            count += 1
-            print 'loading:', count
             # median image size in (2592, 3888)
             image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
             image = cv2.resize(image, (518, 778))
