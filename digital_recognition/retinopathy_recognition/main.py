@@ -1,8 +1,10 @@
-
 import cv2
 import numpy
 import csv
 
+
+def brightness_normalize():
+    pass
 
 if __name__ == '__main__':
     # Get image names and classifications
@@ -23,12 +25,16 @@ if __name__ == '__main__':
 
     # Load all images into memory for now
     images = {i: [] for i in range(5)}
+    count = 0
     for classification, image_names in names.iteritems():
         for image_name in image_names:
+            count += 1
+            print 'loading:', count
             # median image size in (2592, 3888)
             image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
-            image = cv2.resize(image, (2592, 3888))
-            image = hog.compute(image)
+            image = cv2.resize(image, (518, 778))
+            image = image.flatten().astype(numpy.float32)
+            # image = hog.compute(image)
             images[classification].append(image)
 
     # Partition images into test and train sets
