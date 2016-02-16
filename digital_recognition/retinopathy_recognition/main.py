@@ -1,9 +1,13 @@
 import cv2
 import numpy
+import sys
 import csv
 
 
 if __name__ == '__main__':
+
+    print "Getting Images"
+
     # Get image names and classifications
     names = {i: [] for i in range(5)}
     with open('subsetcsv.csv', 'r') as csvfile:
@@ -11,7 +15,9 @@ if __name__ == '__main__':
         for row in reader:
             names[int(row[1])].append('train/' + row[0] + '.jpeg')
 
-    # TODO: we should experiment with these
+    print "Configuring Hog/KMeans"
+
+    # TODO: we should experiment with these HOG parameters
     win_size = (16, 16)
     block_size = (16, 16)
     block_stride = (8, 8)
@@ -19,6 +25,12 @@ if __name__ == '__main__':
     num_bins = 9
     hog = cv2.HOGDescriptor(win_size, block_size, block_stride, cell_size,
                             num_bins)
+
+    #KMeans parameters
+    criteria = (cv2.TERM_CRITERIA_MAX_ITER, 10, 0.8) #Stop at 80% accuracy? or after 10 iterations
+    k = 5 #Number of centroids to find - should probably be more than this.
+
+    print "Loading Images"
 
     # Load all images into memory for now
     images = {i: [] for i in range(5)}
@@ -29,6 +41,16 @@ if __name__ == '__main__':
             image = cv2.resize(image, (518, 778))
             image = image.flatten().astype(numpy.float32)
             # image = hog.compute(image)
+
+            #Kmeans processing --> Idk what I'm doing yet.
+            # ret, label, center = cv2.kmeans(image, k, criteria, 10, 0)
+            # print ret
+            # print "----"
+            # print label
+            # print "----"
+            # print center
+            # print "----"
+
             images[classification].append(image)
 
     # Partition images into test and train sets
