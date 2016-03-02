@@ -23,12 +23,14 @@ if __name__ == '__main__':
     # Load all images into memory for now
     images = {i: [] for i in range(5)}
     for classification, image_names in names.iteritems():
+        if classification in [1, 2, 3]:
+            continue
         for image_name in image_names:
             # median image size in (2592, 3888)
             image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
-            image = cv2.resize(image, (518, 778))
-            image = image.flatten().astype(numpy.float32)
-            # image = hog.compute(image)
+            image = cv2.resize(image, (778, 518))
+            # image = image.flatten().astype(numpy.float32)
+            image = hog.compute(image)
             images[classification].append(image)
 
     # Partition images into test and train sets
