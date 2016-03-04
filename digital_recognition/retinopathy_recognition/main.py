@@ -1,5 +1,6 @@
 import cv2
 import numpy
+import time
 import sys
 import csv
 
@@ -7,6 +8,9 @@ import csv
 if __name__ == '__main__':
 
     print "Getting Images"
+
+    startTime = time.time()
+    print "Started at time", startTime
 
     # Get image names and classifications
     names = {i: [] for i in range(5)}
@@ -27,8 +31,8 @@ if __name__ == '__main__':
                             num_bins)
 
     #KMeans parameters
-    criteria = (cv2.TERM_CRITERIA_MAX_ITER, 10, 0.8) #Stop at 80% accuracy? or after 10 iterations
-    k = 5 #Number of centroids to find - should probably be more than this.
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 0.5) #Stop at 80% accuracy? or after 10 iterations
+    k = 50000 #Number of centroids to find - should probably be more than this.
 
     print "Loading Images"
 
@@ -43,13 +47,25 @@ if __name__ == '__main__':
             # image = hog.compute(image)
 
             #Kmeans processing --> Idk what I'm doing yet.
-            # ret, label, center = cv2.kmeans(image, k, criteria, 10, 0)
-            # print ret
-            # print "----"
-            # print label
-            # print "----"
-            # print center
-            # print "----"
+            ret, label, center = cv2.kmeans(image, k, criteria, 10, 0)
+            
+            #Not really important - measure of compactness
+            print ret 
+            print "----"
+            
+            #Labels associating the points in Image to the new centroid
+            #For each item in image, it has a new label associating it to one of the center items below
+            print label 
+            print "----"
+
+
+            print center # Our K centroids 
+            print "----"
+
+            endTime = time.time() - startTime
+            print "Ended in", endTime, "seconds"
+
+            sys.exit(1)
 
             images[classification].append(image)
 
