@@ -1,17 +1,9 @@
 import cv2
 import numpy
-import time
-import sys
 import csv
 
 
 if __name__ == '__main__':
-
-    print "Getting Images"
-
-    startTime = time.time()
-    print "Started at time", startTime
-
     # Get image names and classifications
     names = {i: [] for i in range(5)}
     with open('subsetcsv.csv', 'r') as csvfile:
@@ -19,9 +11,7 @@ if __name__ == '__main__':
         for row in reader:
             names[int(row[1])].append('train/' + row[0] + '.jpeg')
 
-    print "Configuring Hog/KMeans"
-
-    # TODO: we should experiment with these HOG parameters
+    # TODO: we should experiment with these
     win_size = (16, 16)
     block_size = (16, 16)
     block_stride = (8, 8)
@@ -30,43 +20,17 @@ if __name__ == '__main__':
     hog = cv2.HOGDescriptor(win_size, block_size, block_stride, cell_size,
                             num_bins)
 
-    #KMeans parameters
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 0.5) #Stop at 80% accuracy? or after 10 iterations
-    k = 50000 #Number of centroids to find - should probably be more than this.
-
-    print "Loading Images"
-
     # Load all images into memory for now
     images = {i: [] for i in range(5)}
     for classification, image_names in names.iteritems():
+        if classification in [1, 2, 3]:
+            continue
         for image_name in image_names:
             # median image size in (2592, 3888)
             image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
-            image = cv2.resize(image, (518, 778))
-            image = image.flatten().astype(numpy.float32)
-            # image = hog.compute(image)
-
-            #Kmeans processing --> Idk what I'm doing yet.
-            ret, label, center = cv2.kmeans(image, k, criteria, 10, 0)
-            
-            #Not really important - measure of compactness
-            print ret 
-            print "----"
-            
-            #Labels associating the points in Image to the new centroid
-            #For each item in image, it has a new label associating it to one of the center items below
-            print label 
-            print "----"
-
-
-            print center # Our K centroids 
-            print "----"
-
-            endTime = time.time() - startTime
-            print "Ended in", endTime, "seconds"
-
-            sys.exit(1)
-
+            image = cv2.resize(image, (778, 518))
+            # image = image.flatten().astype(numpy.float32)
+            image = hog.compute(image)
             images[classification].append(image)
 
     # Partition images into test and train sets
@@ -116,4 +80,3 @@ if __name__ == '__main__':
         if svm_result[i] == test_labels[i]:
             svm_correct += 1
     print 'svm:', svm_correct, 1.0 * svm_correct / svm_result.size
-
