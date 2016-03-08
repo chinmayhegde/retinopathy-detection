@@ -1,6 +1,7 @@
 import cv2
 import numpy
 import csv
+import sklearn.svm
 
 
 if __name__ == '__main__':
@@ -31,6 +32,7 @@ if __name__ == '__main__':
             image = cv2.resize(image, (778, 518))
             # image = image.flatten().astype(numpy.float32)
             image = hog.compute(image)
+            image = image.flatten()
             images[classification].append(image)
 
     # Partition images into test and train sets
@@ -71,9 +73,10 @@ if __name__ == '__main__':
         'svm_type': cv2.SVM_C_SVC,
     }
 
-    svm = cv2.SVM()
-    svm.train(train_data, train_labels, params=svm_params)
-    svm_result = svm.predict_all(test_data)
+    # svm = cv2.SVM()
+    classifier = sklearn.svm.LinearSVC()
+    classifier.fit(train_data, train_labels)
+    svm_result = classifier.predict(test_data)
 
     svm_correct = 0
     for i in range(svm_result.size):
