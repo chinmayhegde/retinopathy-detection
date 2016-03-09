@@ -32,9 +32,9 @@ if __name__ == '__main__':
             # skip the first row
             if row[1] == 'level':
                 continue
-            if int(row[1]) in [1, 2, 3]:
-                continue
-            image_name = sys.argv[2] + row[0] + '.jpeg'
+            # if int(row[1]) in [1, 2, 3]:
+            #     continue
+            image_name = sys.argv[2] + '/' + row[0] + '.jpeg'
             names.append(image_name)
             name_to_class[image_name] = int(row[1])
     random.shuffle(names)
@@ -49,7 +49,7 @@ if __name__ == '__main__':
                             num_bins)
 
     svm_classifier = linear_model.SGDClassifier()
-    batch_size = 20
+    batch_size = 200
     # TODO check this
     train_ratio = 0.75
     train_num = int(train_ratio * len(names))
@@ -65,7 +65,8 @@ if __name__ == '__main__':
 
         train_labels = numpy.array(image_classes)
         train_data = numpy.array(images)
-        svm_classifier.partial_fit(train_data, train_labels, classes=[0, 4])
+        svm_classifier.partial_fit(train_data, train_labels,
+                                   classes=[0, 1, 2, 3, 4])
 
     svm_correct = 0
     svm_total = 0
