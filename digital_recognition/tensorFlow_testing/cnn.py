@@ -1,7 +1,7 @@
 print "Loading Retinopathy data"
 
-import input_data
-data = input_data.read_data_sets('train')
+import input_data_batching
+data = input_data_batching.read_data_sets('../../../train')
 
 print "Configuring net"
 
@@ -37,7 +37,7 @@ print "Setting up Convolutional layers"
 W_conv1 = weight_variable([5, 5, 1, 32])
 b_conv1 = bias_variable([32])
 
-x_image = tf.reshape(x, [-1,512,512,1])
+x_image = tf.reshape(x, [-1,16,16,1])
 
 h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
 h_pool1 = max_pool_2x2(h_conv1)
@@ -50,8 +50,8 @@ h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
 h_pool2 = max_pool_2x2(h_conv2)
 
 #Dense layer
-W_fc1 = weight_variable([8 * 8 * 64, 262144])
-b_fc1 = bias_variable([262144])
+W_fc1 = weight_variable([8 * 8 * 64, 256])
+b_fc1 = bias_variable([256])
 
 h_pool2_flat = tf.reshape(h_pool2, [-1, 8 * 8 * 64])
 h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
@@ -61,7 +61,7 @@ keep_prob = tf.placeholder(tf.float32)
 h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
 #Softmax readout layer
-W_fc2 = weight_variable([262144, 5])
+W_fc2 = weight_variable([256, 5])
 b_fc2 = bias_variable([5])
 
 y_conv=tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)

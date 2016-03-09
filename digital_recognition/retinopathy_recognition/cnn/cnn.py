@@ -1,6 +1,6 @@
 from __future__ import division
 from datetime import datetime
-#from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import train_test_split
 from scipy.signal import convolve2d, correlate2d
 from layers import InputLayer, FullyConnectedLayer, ReLuLayer, DropoutLayer, \
                    ConvolutionLayer, PoolingLayer, SquaredLossLayer, SoftmaxLossLayer
@@ -149,30 +149,30 @@ def is_valid_file(arg):
         print "invalid file " + arg
         sys.exit()
         
-def get_label(n_classes, classification):
-    if n_classes==2:
-        if classification==0:
+def get_label(arg1, arg2):
+    if arg1==2:
+        if arg2==0:
             return 0
         else:
             return 1
-    if n_classes==3:
-        if classification==0:
+    elif arg1==3:
+        if arg2==0:
             return 0
-        elif classification==2:
+        elif arg2==2:
             return 1
         else:
             return 2
-    if n_classes==4:
-        if classification==0:
+    elif arg1==4:
+        if arg2==0:
             return 0
-        elif classification==2:
+        elif arg2==2:
             return 1
-        elif classification==3:
+        elif arg2==3:
             return 2
         else:
             return 3
-    if n_classes==5:
-        return classification
+    else:
+        return arg2
         
 #params
 #   image: grayscale image before resize
@@ -195,7 +195,12 @@ def crop_img(image, resizeHeight= 518, resizeWidth=718, ratio=.75):
     for i in range(0,15):
         ret,thresh = cv2.threshold(img,10+(5*i),255,cv2.THRESH_BINARY)
         contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-        cnt = contours[0]
+        try:
+            cnt = contours[0]
+        except IndexError:
+            print "no contours"
+            return (image, False)            
+        
         brx,bry,brw,brh = cv2.boundingRect(cnt)
         if(brw > 100 and brh > 100):
             passed = True
@@ -231,8 +236,8 @@ if __name__ == "__main__":
     parser.add_argument("-p", dest="pklfile", help="name of pkl file to run with", metavar="FILE")
     parser.add_argument("-i", "--iteration", type=int, help="number of epochs to test, one epoch at a time")
     parser.add_argument("-e", "--epochs", type=int, help="number of epochs to train")
-    parser.add_argument("-t", dest="train_path", help="path to train folder with images", metavar="FILE", default="train\\")
-    parser.add_argument("-c", dest="label_file", help="csv file of labels", metavar="FILE", default="subsetcsv.csv")
+    parser.add_argument("-t", dest="train_path", help="path to train folder with images", metavar="FILE", default="/root/project/train/")#train\\
+    parser.add_argument("-c", dest="label_file", help="csv file of labels", metavar="FILE", default="trainLabels.csv")
     parser.add_argument("-r", "--results", action="store_true", help="bool run tests")
     parser.add_argument("-n", dest="n_classes", type=int, help="number of classifications", default=2, choices=[2,3,4,5])
     parser.add_argument("-s", dest="size", type=int, help="dimension of image", default=500)
@@ -247,7 +252,7 @@ if __name__ == "__main__":
         print "pickle not found"
         net.load_data(args.pklfile)
     
-    net = NeuralNet([{"type": "input", "input_shape": (size, size)},
+    net = NeuralNet([{"type": "input", "input_shape": (args.size, args.size)},
                      {"type": "convolution", "filters": 5, "size": 3},
                      {"type": "dropout"},
                      {"type": "relu"},
@@ -255,9 +260,9 @@ if __name__ == "__main__":
                      {"type": "fc", "neurons": 100},
                      {"type": "dropout"},
                      {"type": "relu"},
-                     {"type": "fc", "neurons": n_classes},
+                     {"type": "fc", "neurons": args.n_classes},
                      {"type": "relu"},
-                     {"type": "softmax", "categories": n_classes}])
+                     {"type": "softmax", "categories": args.n_classes}])
                      
     
     # Get image names and classifications
@@ -277,36 +282,38 @@ if __name__ == "__main__":
                             num_bins)'''
 
     # Load all images into memory for now
-    images = {i: [] for i in range(5)}
+    #images = {i: [] for i in range(5)}
     counter = 0
+    data_images = []
+    labels = []
     for classification, image_names in names.iteritems():
         for image_name in image_names:
-            if (n_classes==2 and classification in [1, 4]) or (n_classes==3 and classification in [0,2,4]) or (n_classes==4 and classification in [0,2,3,4]) or n_classes==5:
+            if (args.n_classes==2 and classification in [1, 4]) or (args.n_classes==3 and classification in [0,2,4]) or (args.n_classes==4 and classification in [0,2,3,4]) or args.n_classes==5:
+                #print image_name
                 image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
-                img, bool = crop_img(image, size, size)
+                img, bool = crop_img(image, args.size, args.size)
                 if(not bool):
                     print image_name + " failed crop"
-                    sys.exit()
+                    continue
                 #image = hog.compute(image)
                 #images[classification].append(image)
-                images[classification].append(image)
-                '''data_images.append(img)
+                data_images.append(img)
                 counter = counter + 1
-                labels.append(get_label(n_classes, classification))'''
+                labels.append(get_label(args.n_classes, classification))
                 if counter%100 == 0:
                     print "image count: " + str(counter)
             
 
     # Partition images into test and train sets 
-    '''data_images = np.array(data_images);
+    data_images = np.array(data_images);
     labels = np.array(labels)
 
-    data = data_images.reshape(len(data_images), size*size)
+    data = data_images.reshape(len(data_images), args.size*args.size)
     train_data, test_data, train_target, test_target = train_test_split(data, labels, train_size=0.75)
-    train_data = train_data.reshape((len(train_data), size, size))
-    test_data = test_data.reshape((len(test_data), size, size))'''
+    train_data = train_data.reshape((len(train_data), args.size, args.size))
+    test_data = test_data.reshape((len(test_data), args.size, args.size))
     
-    train_ratio = 0.75
+    '''train_ratio = 0.75
     train_labels = []
     train_data = []
     test_labels = []
@@ -323,7 +330,7 @@ if __name__ == "__main__":
     train_labels = numpy.array(train_labels)
     train_data = numpy.array(train_data)
     test_labels = numpy.array(test_labels)
-    test_data = numpy.array(test_data)
+    test_data = numpy.array(test_data)'''
     
     
     if not args.iteration is None:
