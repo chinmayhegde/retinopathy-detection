@@ -1,16 +1,35 @@
 import cv2
 import numpy
 import csv
-import sklearn.svm
+from sklearn import linear_model
+import random
 
+
+def get_batch(image_names, idx, batch_size, hog):
+    images = {}
+    for image_name in image_names[idx:idx + batch_size]:
+        # median image size in (2592, 3888)
+        image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
+        image = cv2.resize(image, (778, 518))
+        # image = image.flatten().astype(numpy.float32)
+        image = hog.compute(image)
+        image = image.flatten()
+        images[image_name] = image
+    return images
 
 if __name__ == '__main__':
     # Get image names and classifications
-    names = {i: [] for i in range(5)}
+    names = []
+    name_to_class = {}
     with open('subsetcsv.csv', 'r') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
-            names[int(row[1])].append('train/' + row[0] + '.jpeg')
+            if int(row[1]) in [1, 2, 3]:
+                continue
+            image_name = 'train/' + row[0] + '.jpeg'
+            names.append(image_name)
+            name_to_class[image_name] = int(row[1])
+    random.shuffle(names)
 
     # TODO: we should experiment with these
     win_size = (16, 16)
@@ -21,65 +40,43 @@ if __name__ == '__main__':
     hog = cv2.HOGDescriptor(win_size, block_size, block_stride, cell_size,
                             num_bins)
 
-    # Load all images into memory for now
-    images = {i: [] for i in range(5)}
-    for classification, image_names in names.iteritems():
-        if classification in [1, 2, 3]:
-            continue
-        for image_name in image_names:
-            # median image size in (2592, 3888)
-            image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
-            image = cv2.resize(image, (778, 518))
-            # image = image.flatten().astype(numpy.float32)
-            image = hog.compute(image)
-            image = image.flatten()
-            images[classification].append(image)
-
-    # Partition images into test and train sets
+    svm_classifier = linear_model.SGDClassifier()
+    batch_size = 20
+    # TODO check this
     train_ratio = 0.75
-    train_labels = []
-    train_data = []
-    test_labels = []
-    test_data = []
+    train_num = int(train_ratio * len(names))
+    for idx in range(0, train_num, batch_size):
+        this_batch_size = min(train_num - idx, batch_size)
+        image_map = get_batch(names, idx, this_batch_size, hog)
+        images = []
+        image_classes = []
+        for image_name, image in image_map.iteritems():
+            images.append(image)
+            image_classes.append(name_to_class[image_name])
 
-    for classification, image_list in images.iteritems():
-        train_num = int(len(image_list) * train_ratio)
-        train_labels.extend([classification for _ in range(train_num)])
-        train_data.extend(image_list[:train_num])
-        test_labels.extend([classification for _ in
-                            range(len(image_list) - train_num)])
-        test_data.extend(image_list[train_num:])
-
-    train_labels = numpy.array(train_labels)
-    train_data = numpy.array(train_data)
-    test_labels = numpy.array(test_labels)
-    test_data = numpy.array(test_data)
-
-    # Classify, move these to other classes
-    # KNN
-    knn = cv2.KNearest()
-    knn.train(train_data, train_labels)
-    _, knn_result, _, _ = knn.find_nearest(test_data, k=3)
-
-    knn_correct = 0
-    for i in range(knn_result.size):
-        if knn_result[i] == test_labels[i]:
-            knn_correct += 1
-    print 'knn:', knn_correct, 1.0 * knn_correct / knn_result.size
-
-    # SVM
-    svm_params = {
-        'kernel_type': cv2.SVM_LINEAR,
-        'svm_type': cv2.SVM_C_SVC,
-    }
-
-    # svm = cv2.SVM()
-    classifier = sklearn.svm.LinearSVC()
-    classifier.fit(train_data, train_labels)
-    svm_result = classifier.predict(test_data)
+        train_labels = numpy.array(image_classes)
+        train_data = numpy.array(images)
+        svm_classifier.partial_fit(train_data, train_labels, classes=[0, 4])
 
     svm_correct = 0
-    for i in range(svm_result.size):
-        if svm_result[i] == test_labels[i]:
-            svm_correct += 1
-    print 'svm:', svm_correct, 1.0 * svm_correct / svm_result.size
+    svm_total = 0
+    for idx in range(train_num, len(names), batch_size):
+        this_batch_size = min(len(names) - idx, batch_size)
+        image_map = get_batch(names, idx, this_batch_size, hog)
+        images = []
+        image_classes = []
+        for image_name, image in image_map.iteritems():
+            images.append(image)
+            image_classes.append(name_to_class[image_name])
+
+        test_labels = numpy.array(image_classes)
+        test_data = numpy.array(images)
+
+        svm_result = svm_classifier.predict(test_data)
+        svm_total += svm_result.size
+        for i in range(svm_result.size):
+            if svm_result[i] == test_labels[i]:
+                svm_correct += 1
+
+    print 'svm:', svm_correct, 1.0 * svm_correct / svm_total
+
