@@ -1,6 +1,6 @@
 from __future__ import division
 from datetime import datetime
-#from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import train_test_split
 from scipy.signal import convolve2d, correlate2d
 from layers import InputLayer, FullyConnectedLayer, ReLuLayer, DropoutLayer, \
                    ConvolutionLayer, PoolingLayer, SquaredLossLayer, SoftmaxLossLayer
@@ -231,8 +231,8 @@ if __name__ == "__main__":
     parser.add_argument("-p", dest="pklfile", help="name of pkl file to run with", metavar="FILE")
     parser.add_argument("-i", "--iteration", type=int, help="number of epochs to test, one epoch at a time")
     parser.add_argument("-e", "--epochs", type=int, help="number of epochs to train")
-    parser.add_argument("-t", dest="train_path", help="path to train folder with images", metavar="FILE", default="train\\")
-    parser.add_argument("-c", dest="label_file", help="csv file of labels", metavar="FILE", default="subsetcsv.csv")
+    parser.add_argument("-t", dest="train_path", help="path to train folder with images", metavar="FILE", default="../../../../train/")#train\\
+    parser.add_argument("-c", dest="label_file", help="csv file of labels", metavar="FILE", default="trainLabels.csv")
     parser.add_argument("-r", "--results", action="store_true", help="bool run tests")
     parser.add_argument("-n", dest="n_classes", type=int, help="number of classifications", default=2, choices=[2,3,4,5])
     parser.add_argument("-s", dest="size", type=int, help="dimension of image", default=500)
@@ -277,7 +277,7 @@ if __name__ == "__main__":
                             num_bins)'''
 
     # Load all images into memory for now
-    images = {i: [] for i in range(5)}
+    #images = {i: [] for i in range(5)}
     counter = 0
     for classification, image_names in names.iteritems():
         for image_name in image_names:
@@ -290,23 +290,23 @@ if __name__ == "__main__":
                 #image = hog.compute(image)
                 #images[classification].append(image)
                 images[classification].append(image)
-                '''data_images.append(img)
+                data_images.append(img)
                 counter = counter + 1
-                labels.append(get_label(n_classes, classification))'''
+                labels.append(get_label(n_classes, classification))
                 if counter%100 == 0:
                     print "image count: " + str(counter)
             
 
     # Partition images into test and train sets 
-    '''data_images = np.array(data_images);
+    data_images = np.array(data_images);
     labels = np.array(labels)
 
     data = data_images.reshape(len(data_images), size*size)
     train_data, test_data, train_target, test_target = train_test_split(data, labels, train_size=0.75)
     train_data = train_data.reshape((len(train_data), size, size))
-    test_data = test_data.reshape((len(test_data), size, size))'''
+    test_data = test_data.reshape((len(test_data), size, size))
     
-    train_ratio = 0.75
+    '''train_ratio = 0.75
     train_labels = []
     train_data = []
     test_labels = []
@@ -323,7 +323,7 @@ if __name__ == "__main__":
     train_labels = numpy.array(train_labels)
     train_data = numpy.array(train_data)
     test_labels = numpy.array(test_labels)
-    test_data = numpy.array(test_data)
+    test_data = numpy.array(test_data)'''
     
     
     if not args.iteration is None:
