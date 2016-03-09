@@ -3,6 +3,7 @@ import numpy
 import csv
 from sklearn import linear_model
 import random
+import sys
 
 
 def get_batch(image_names, idx, batch_size, hog):
@@ -18,15 +19,22 @@ def get_batch(image_names, idx, batch_size, hog):
     return images
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print 'Usage: python main.py <csv file path> <image folder path>'
+        sys.exit(1)
+
     # Get image names and classifications
     names = []
     name_to_class = {}
-    with open('subsetcsv.csv', 'r') as csvfile:
+    with open(sys.argv[1], 'r') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
+            # skip the first row
+            if row[1] == 'level':
+                continue
             if int(row[1]) in [1, 2, 3]:
                 continue
-            image_name = 'train/' + row[0] + '.jpeg'
+            image_name = sys.argv[2] + row[0] + '.jpeg'
             names.append(image_name)
             name_to_class[image_name] = int(row[1])
     random.shuffle(names)
@@ -53,6 +61,7 @@ if __name__ == '__main__':
         for image_name, image in image_map.iteritems():
             images.append(image)
             image_classes.append(name_to_class[image_name])
+        print 'train:', idx
 
         train_labels = numpy.array(image_classes)
         train_data = numpy.array(images)
@@ -68,6 +77,7 @@ if __name__ == '__main__':
         for image_name, image in image_map.iteritems():
             images.append(image)
             image_classes.append(name_to_class[image_name])
+        print 'test:', idx
 
         test_labels = numpy.array(image_classes)
         test_data = numpy.array(images)
