@@ -20,11 +20,12 @@ class DataSet(object):
 
     if ( is_necessary ):
       print "Loading images for test/validation."
-      self._images = get_test_images(name_label_association)
+      self._images, self._labels = get_test_images_and_labels(name_label_association)
     else:
       self._images = [] #Images loaded in batching
+      self._labels = name_label_association 
 
-    self._labels = name_label_association 
+
     self._epochs_completed = 0
     self._index_in_epoch = 0
     self._num_examples = len(name_label_association)
@@ -98,9 +99,9 @@ def read_data_sets(train_dir, dtype=tf.float32):
 
   name_label_association = read_labels()
 
-  TRAIN_SIZE = (len(name_label_association) * 14 ) / 16 #3/4 train
-  TEST_SIZE = len(name_label_association) / 16 #1/8 test
-  VALIDATION_SIZE = len(name_label_association) / 16 #1/8 validation
+  TRAIN_SIZE = (len(name_label_association) * 30 ) / 32 #3/4 train
+  TEST_SIZE = len(name_label_association) / 32 #1/8 test
+  VALIDATION_SIZE = len(name_label_association) / 32 #1/8 validation
 
   train_label_image_association = {}
   test_label_image_association = {}
@@ -124,7 +125,7 @@ def read_data_sets(train_dir, dtype=tf.float32):
 
   return data_sets
 
-def get_test_images(name2label, dtype=tf.float32):
+def get_test_images_and_labels(name2label, dtype=tf.float32):
   label_image_association_to_load = {}
 
   for key, value in name2label.items():
@@ -138,7 +139,7 @@ def get_test_images(name2label, dtype=tf.float32):
   images = images.astype(numpy.float32)
   images = numpy.multiply(images, 1.0 / 255.0)
 
-  return images
+  return images, labels
 
 
 #Used to read a given subset of images

@@ -149,30 +149,30 @@ def is_valid_file(arg):
         print "invalid file " + arg
         sys.exit()
         
-def get_label(arg1, arg2):
-    if arg1==2:
-        if arg2==0:
+def get_label(n_classes, classification):
+    if n_classes==2:
+        if classification==0:
             return 0
         else:
             return 1
-    elif arg1==3:
-        if arg2==0:
+    if n_classes==3:
+        if classification==0:
             return 0
-        elif arg2==2:
+        elif classification==2:
             return 1
         else:
             return 2
-    elif arg1==4:
-        if arg2==0:
+    if n_classes==4:
+        if classification==0:
             return 0
-        elif arg2==2:
+        elif classification==2:
             return 1
-        elif arg2==3:
+        elif classification==3:
             return 2
         else:
             return 3
-    else:
-        return arg2
+    if n_classes==5:
+        return classification
         
 #params
 #   image: grayscale image before resize
@@ -195,12 +195,7 @@ def crop_img(image, resizeHeight= 518, resizeWidth=718, ratio=.75):
     for i in range(0,15):
         ret,thresh = cv2.threshold(img,10+(5*i),255,cv2.THRESH_BINARY)
         contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-        try:
-            cnt = contours[0]
-        except IndexError:
-            print "no contours"
-            return (image, False)            
-        
+        cnt = contours[0]
         brx,bry,brw,brh = cv2.boundingRect(cnt)
         if(brw > 100 and brh > 100):
             passed = True
@@ -236,7 +231,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", dest="pklfile", help="name of pkl file to run with", metavar="FILE")
     parser.add_argument("-i", "--iteration", type=int, help="number of epochs to test, one epoch at a time")
     parser.add_argument("-e", "--epochs", type=int, help="number of epochs to train")
-    parser.add_argument("-t", dest="train_path", help="path to train folder with images", metavar="FILE", default="/root/project/train/")#train\\
+    parser.add_argument("-t", dest="train_path", help="path to train folder with images", metavar="FILE", default="../../../../train/")#train\\
     parser.add_argument("-c", dest="label_file", help="csv file of labels", metavar="FILE", default="trainLabels.csv")
     parser.add_argument("-r", "--results", action="store_true", help="bool run tests")
     parser.add_argument("-n", dest="n_classes", type=int, help="number of classifications", default=2, choices=[2,3,4,5])
@@ -252,7 +247,7 @@ if __name__ == "__main__":
         print "pickle not found"
         net.load_data(args.pklfile)
     
-    net = NeuralNet([{"type": "input", "input_shape": (args.size, args.size)},
+    net = NeuralNet([{"type": "input", "input_shape": (size, size)},
                      {"type": "convolution", "filters": 5, "size": 3},
                      {"type": "dropout"},
                      {"type": "relu"},
@@ -260,9 +255,9 @@ if __name__ == "__main__":
                      {"type": "fc", "neurons": 100},
                      {"type": "dropout"},
                      {"type": "relu"},
-                     {"type": "fc", "neurons": args.n_classes},
+                     {"type": "fc", "neurons": n_classes},
                      {"type": "relu"},
-                     {"type": "softmax", "categories": args.n_classes}])
+                     {"type": "softmax", "categories": n_classes}])
                      
     
     # Get image names and classifications
@@ -284,22 +279,20 @@ if __name__ == "__main__":
     # Load all images into memory for now
     #images = {i: [] for i in range(5)}
     counter = 0
-    data_images = []
-    labels = []
     for classification, image_names in names.iteritems():
         for image_name in image_names:
-            if (args.n_classes==2 and classification in [1, 4]) or (args.n_classes==3 and classification in [0,2,4]) or (args.n_classes==4 and classification in [0,2,3,4]) or args.n_classes==5:
-                #print image_name
+            if (n_classes==2 and classification in [1, 4]) or (n_classes==3 and classification in [0,2,4]) or (n_classes==4 and classification in [0,2,3,4]) or n_classes==5:
                 image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
-                img, bool = crop_img(image, args.size, args.size)
+                img, bool = crop_img(image, size, size)
                 if(not bool):
                     print image_name + " failed crop"
-                    continue
+                    sys.exit()
                 #image = hog.compute(image)
                 #images[classification].append(image)
+                images[classification].append(image)
                 data_images.append(img)
                 counter = counter + 1
-                labels.append(get_label(args.n_classes, classification))
+                labels.append(get_label(n_classes, classification))
                 if counter%100 == 0:
                     print "image count: " + str(counter)
             
@@ -308,10 +301,10 @@ if __name__ == "__main__":
     data_images = np.array(data_images);
     labels = np.array(labels)
 
-    data = data_images.reshape(len(data_images), args.size*args.size)
+    data = data_images.reshape(len(data_images), size*size)
     train_data, test_data, train_target, test_target = train_test_split(data, labels, train_size=0.75)
-    train_data = train_data.reshape((len(train_data), args.size, args.size))
-    test_data = test_data.reshape((len(test_data), args.size, args.size))
+    train_data = train_data.reshape((len(train_data), size, size))
+    test_data = test_data.reshape((len(test_data), size, size))
     
     '''train_ratio = 0.75
     train_labels = []
@@ -348,4 +341,5 @@ if __name__ == "__main__":
         print "Train Error: {:.2f}%".format(_error(train_data, train_target))
         print "Test Error: {:.2f}%".format(_error(test_data, test_target))
     
+>>>>>>> d34f417ff4335b853a0417907902f45266bae696
     print "\nend " + str(datetime.now()) + "\n"
