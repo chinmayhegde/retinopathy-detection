@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+	<title>Home page</title>
+	<p>should probably have content here</p>
+	<h1>Upload new File</h1>
+	<form action="/" method=post enctype=multipart/form-data>
+		<input type=file name=image>
+		<input type=submit value=Upload>
+	</form>
+
+	{% if image_class is defined %}
+	<p>image class is: {{ image_class }}</p>
+	{% endif %}
+</html>
+	

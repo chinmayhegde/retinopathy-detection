@@ -1,17 +1,17 @@
-from flask import Blueprint
+from flask import Blueprint, render_template, request
 import json
 
 
 user_view = Blueprint('user_view', __name__)
 
-@user_view.route('/')
+
+@user_view.route('/', methods=['GET', 'POST'])
 def display_home_page():
-    # Can return HTML page with 'render_template()'
-    return 'Hello, world!'
+    if request.method == 'POST':
+        image = request.files['image']
+        # TODO remove this when we do actual stuff
+        print image.__class__
 
-
-@user_view.route('/classify', methods=['POST'])
-def classify_image():
-    # TODO
-    return json.dumps(-1)
+        return render_template('home.html', image_class='TODO')
+    return render_template('home.html')
 
