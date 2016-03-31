@@ -1,9 +1,7 @@
 from flask import Blueprint, render_template, request
 import cv2
 import numpy
-# import svm_classifier
-import helpers
-import pickle
+import svm_classifier
 
 
 retinopathy_view = Blueprint('retinopathy_view', __name__)
@@ -16,13 +14,9 @@ def display_home_page():
         f = request.files['image']
         image_bytes = numpy.asarray(bytearray(f.read()), dtype=numpy.uint8)
         image = cv2.imdecode(image_bytes, cv2.IMREAD_GRAYSCALE)
-        print image.__class__
-        with open(helpers.get_classifier_filename('svm'), 'rb') as f:
-            classifier = pickle.load(f)
-            classifier.hog = classifier._create_hog()
-        # classifier = svm_classifier.SVMBatchClassifier.load()
-        print classifier.__class__
+        classifier = svm_classifier.SVMBatchClassifier.load()
+        image_class = classifier.classify_single(image)
 
-        return render_template('home.html', image_class='TODO')
+        return render_template('home.html', image_class=image_class)
     return render_template('home.html')
 

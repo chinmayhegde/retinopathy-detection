@@ -83,7 +83,8 @@ class SVMBatchClassifier(BatchClassifier):
         data, ok = self._preprocess_image(image)
         if not ok:
             return -1
-        return self.classifier.predict(data)
+        data = data.reshape(1, -1)
+        return self.classifier.predict(data)[0]
 
     def save(self):
         del self.hog
@@ -96,4 +97,5 @@ class SVMBatchClassifier(BatchClassifier):
         with open(helpers.get_classifier_filename('svm'), 'rb') as f:
             classifier = pickle.load(f)
             classifier.hog = classifier._create_hog()
+            return classifier
 
