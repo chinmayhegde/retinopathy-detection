@@ -22,7 +22,7 @@ class SVMBatchClassifier(BatchClassifier):
 
     def _preprocess_image(self, image):
         # median image size is (2592, 3888)
-        image = cv2.resize(image, (778, 518))
+        # image = cv2.resize(image, (778, 518))
         ok = True
         # image, ok = crop.crop_img(image)
         if not ok:
