@@ -33,7 +33,10 @@ class SVMBatchClassifier(BatchClassifier):
     def _get_batch(self, image_names):
         images = {}
         for image_name in image_names:
-            image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
+            with open(image_name, 'rb') as f:
+                image = numpy.fromstring(f.read(), dtype=numpy.uint8)
+                image = image.reshape(500, 500)
+            # image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
             image, ok = self._preprocess_image(image)
             if not ok:
                 print 'preprocess failed, skipping image'
