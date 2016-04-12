@@ -36,6 +36,29 @@ def get_image_split(csv_filename, image_folder):
     return train_filenames, test_filenames, image_classes
 
 
+def get_image_split2(image_folder):
+    image_names = []
+    image_classes = {}
+    for image_class in range(5):
+        class_image_names = os.listdir(image_folder + '/' + str(image_class))
+        class_image_names = [image_folder + '/' + str(image_class) + '/' + name
+                             for name in class_image_names]
+        image_names.extend(class_image_names)
+        for image_name in class_image_names:
+            image_classes[image_name] = image_class
+    random.shuffle(image_names)
+
+    train_ratio = 0.8
+    train_num = int(train_ratio * len(image_names))
+
+    train_filenames = image_names[:train_num]
+    test_filenames = image_names[train_num:]
+    print train_filenames
+    print test_filenames
+    print image_classes
+    return train_filenames, test_filenames, image_classes
+
+
 def get_classifier(classifier_name):
     if classifier_name == 'svm':
         return svm_classifier.SVMBatchClassifier([0, 1, 2, 3, 4])
