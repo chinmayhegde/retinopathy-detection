@@ -53,9 +53,6 @@ def get_image_split2(image_folder):
 
     train_filenames = image_names[:train_num]
     test_filenames = image_names[train_num:]
-    print train_filenames
-    print test_filenames
-    print image_classes
     return train_filenames, test_filenames, image_classes
 
 
