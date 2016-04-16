@@ -15,7 +15,7 @@ class SVMBatchClassifier(BatchClassifier):
         self.batch_size = batch_size
         # win_size, block_size, block_stride, cell_size, num_bins
         self.hog = self._create_hog()
-        self.classifier = linear_model.SGDClassifier()
+        self.classifier = linear_model.SGDClassifier(loss='modified_huber')
 
     def _create_hog(self):
         return cv2.HOGDescriptor((16, 16), (16, 16), (8, 8), (8, 8), 9)
@@ -27,6 +27,7 @@ class SVMBatchClassifier(BatchClassifier):
         # image, ok = crop.crop_img(image)
         if not ok:
             return None, ok
+
         image = self.hog.compute(image)
         return image.flatten(), True
 
@@ -61,7 +62,10 @@ class SVMBatchClassifier(BatchClassifier):
 
     def classify_test(self, image_names, image_classes):
         correct = 0
+        correct_pm_one = 0
         total = 0
+        conf_matrix = [[0 for _ in self.classes] for _ in self.classes]
+
         for idx in range(0, len(image_names), self.batch_size):
             image_map = self._get_batch(image_names[idx:idx + self.batch_size])
 
@@ -77,10 +81,13 @@ class SVMBatchClassifier(BatchClassifier):
             result = self.classifier.predict(test_data)
             total += result.size
             for i in range(result.size):
+                conf_matrix[result[i]][test_labels[i]] += 1
+                if abs(result[i] - test_labels[i]) <= 1:
+                    correct_pm_one += 1
                 if result[i] == test_labels[i]:
                     correct += 1
 
-        return correct, total
+        return correct, correct_pm_one, total, conf_matrix
 
     def classify_single(self, image):
         data, ok = self._preprocess_image(image)

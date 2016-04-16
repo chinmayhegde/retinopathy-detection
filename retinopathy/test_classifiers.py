@@ -19,8 +19,13 @@ if __name__ == '__main__':
             classifier = helpers.get_classifier(classifier_name)
 
             classifier.train(train_filenames, image_classes)
-            correct, total = classifier.classify_test(test_filenames,
-                                                      image_classes)
+            correct, correct_pm_one, total, conf_matrix = \
+                classifier.classify_test(test_filenames, image_classes)
 
             print 'result:', correct, 1.0 * correct / total
+
+            pm_one_pct = 1.0 * correct_pm_one / total
+            print 'result plus/minus one:', correct_pm_one, pm_one_pct
+
+            print 'confusion matrix:', conf_matrix
 
