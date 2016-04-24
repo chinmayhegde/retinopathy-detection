@@ -1,6 +1,0 @@
-0,4 categories only
-	batch size 20: svm: 6448 0.972549019608
-	batch size 200: svm: 6430 0.969834087481
-
-all categories
-	batch size 200: svm: 6503 0.740491915281

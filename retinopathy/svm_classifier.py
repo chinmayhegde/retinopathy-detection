@@ -28,6 +28,7 @@ class SVMBatchClassifier(BatchClassifier):
         if not ok:
             return None, ok
 
+        image = image.reshape(500, 500)
         image = self.hog.compute(image)
         return image.flatten(), True
 
@@ -36,7 +37,7 @@ class SVMBatchClassifier(BatchClassifier):
         for image_name in image_names:
             with open(image_name, 'rb') as f:
                 image = numpy.fromstring(f.read(), dtype=numpy.uint8)
-                image = image.reshape(500, 500)
+                # image = image.reshape(500, 500)
             # image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
             image, ok = self._preprocess_image(image)
             if not ok:
@@ -90,6 +91,7 @@ class SVMBatchClassifier(BatchClassifier):
         return correct, correct_pm_one, total, conf_matrix
 
     def classify_single(self, image):
+        print image
         data, ok = self._preprocess_image(image)
         if not ok:
             return -1

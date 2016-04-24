@@ -16,8 +16,7 @@ def display_home_page():
         classifier = helpers.get_fitted_classifier(classifier_name)
 
         f = request.files['image']
-        image_bytes = numpy.asarray(bytearray(f.read()), dtype=numpy.uint8)
-        image = cv2.imdecode(image_bytes, cv2.IMREAD_GRAYSCALE)
+        image = numpy.fromstring(f.read(), dtype=numpy.uint8)
         image_class = classifier.classify_single(image)
 
         return render_template('home.html', image_class=image_class)
