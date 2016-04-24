@@ -67,5 +67,5 @@ def get_fitted_classifier(classifier_name):
     if classifier_name == 'svm':
         return svm_classifier.SVMBatchClassifier.load()
     else:
-        raise ValueError('invalid classifier: ' + classifier_name)
+        raise ValueError('invalid classifier: ' + str(classifier_name))
 
